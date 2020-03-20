@@ -8,24 +8,25 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 User _userFromFirebaseUser(FirebaseUser user){
   return user != null ? User(uid: user.uid) : null;
 }
-//sign_in anon
+
 
 //auth change user stream
 Stream <User> get user {
   return _auth.onAuthStateChanged
     .map((FirebaseUser user) => _userFromFirebaseUser(user));
 }
-Future signInAnon() async{
-  try{
-    AuthResult result = await  _auth.signInAnonymously();
-    FirebaseUser user = result.user;
-    return _userFromFirebaseUser(user) ;
-  }catch(e){
-    print(e.toString());
-    return null;
+//sign in anon
+// Future signInAnon() async{
+//   try{
+//     AuthResult result = await  _auth.signInAnonymously();
+//     FirebaseUser user = result.user;
+//     return _userFromFirebaseUser(user) ;
+//   }catch(e){
+//     print(e.toString());
+//     return null;
 
-  }
-}
+//   }
+// }
 // sign in with email and pass
 
 //register with email and password
