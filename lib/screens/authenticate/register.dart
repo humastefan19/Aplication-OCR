@@ -65,8 +65,6 @@ class _RegisterState extends State<Register> {
                      setState(() => error = '');
                      }
                     }
-
-
                   }
                ),
                SizedBox(height : 20.0),
