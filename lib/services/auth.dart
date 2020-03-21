@@ -43,5 +43,12 @@ Future registerWithEmailAndPassword(String email, String password) async {
 }
 
 //sign out
-
+Future signOut() async {
+  try {
+    return await _auth.signOut();
+  } catch(e) {
+    print(e.toString());
+    return null;
+  }
+}
 }
