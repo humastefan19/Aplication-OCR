@@ -35,6 +35,7 @@ class HomePageState extends State<Home>
       title: Text('OCR Application'),
       backgroundColor: Colors.teal[400],
       elevation: 0.0,
+
       actions: <Widget>[
         FlatButton.icon(
           onPressed: () async {
