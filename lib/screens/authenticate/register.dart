@@ -26,8 +26,9 @@ class _RegisterState extends State<Register> {
         actions: <Widget>[
           FlatButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (context) => SignIn()));
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => SignIn())
+                );
               },
               icon: Icon(Icons.person),
               label: Text('Sign In'))
@@ -88,7 +89,8 @@ class _RegisterState extends State<Register> {
   String validateEmail(String value) {
     Pattern pattern =
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
+    RegExp regex = new
+    RegExp(pattern);
     if (value.isEmpty)
       return "Enter an email";
     else if (!regex.hasMatch(value))
@@ -97,3 +99,4 @@ class _RegisterState extends State<Register> {
       return null;
   }
 }
+

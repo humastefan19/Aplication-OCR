@@ -27,7 +27,8 @@ class _SignInState extends State<SignIn> {
           FlatButton.icon(
               onPressed: () {
                 Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => Register()));
+                    MaterialPageRoute(builder: (context) => Register())
+                );
               },
               icon: Icon(Icons.person),
               label: Text('Register'))
@@ -69,8 +70,6 @@ class _SignInState extends State<SignIn> {
                               .signInWithEmailAndPassword(email, password);
                           if (result == null) {
                             setState(() => error = 'Invalid email or password');
-                          } else {
-                            setState(() => error = '');
                           }
                         }
                       }),
