@@ -4,6 +4,10 @@ import 'package:ocrapplication/screens/wrapper.dart';
 import 'package:ocrapplication/services/auth.dart';
 import 'package:provider/provider.dart';
 
+import 'ml-vision/camera_preview_scanner.dart';
+import 'ml-vision/material_barcode_scanner.dart';
+import 'ml-vision/picture_scanner.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -13,8 +17,15 @@ class MyApp extends StatelessWidget {
     return StreamProvider<User>.value(
       value: AuthService().user,
       child: MaterialApp(
-      home:Wrapper(),
+        home: Wrapper(),
+        routes: <String, WidgetBuilder>{
+          '/$PictureScanner': (BuildContext context) => PictureScanner(),
+          '/$CameraPreviewScanner': (BuildContext context) =>
+              CameraPreviewScanner(),
+          '/$MaterialBarcodeScanner': (BuildContext context) =>
+              const MaterialBarcodeScanner(),
+        },
       ),
     );
-  } 
+  }
 }
