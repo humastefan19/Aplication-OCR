@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:ocrapplication/services/auth.dart';
 //Firebase Storage Plugin
 import 'package:ocrapplication/services/storage.dart';
@@ -20,9 +21,14 @@ class HomePageState extends State<Home>
       Future getImage() async
       {
         File tempImage = await ImagePicker.pickImage(source: ImageSource.gallery);
+        final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFile(tempImage);
+        final TextRecognizer textRecognizer = FirebaseVision.instance.textRecognizer();
+        final VisionText visionText = await textRecognizer.processImage(visionImage);
+        String text = visionText.text;
+        print(text);
 
-        setState(()
-        {
+    setState(()
+    {
           sampleImage = tempImage;
     });
   }
