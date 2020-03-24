@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ocrapplication/screens/authenticate/register.dart';
+import 'package:ocrapplication/screens/home/home.dart';
 import 'package:ocrapplication/services/auth.dart';
 
 class SignIn extends StatefulWidget {
-  @override
+  final Function toggleView;
+  SignIn({this.toggleView});
+
+  @override 
   _SignInState createState() => _SignInState();
 }
 
@@ -26,9 +30,7 @@ class _SignInState extends State<SignIn> {
         actions: <Widget>[
           FlatButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => Register())
-                );
+                widget.toggleView();
               },
               icon: Icon(Icons.person),
               label: Text('Register'))
@@ -42,7 +44,7 @@ class _SignInState extends State<SignIn> {
                 children: <Widget>[
                   SizedBox(height: 20.0),
                   TextFormField(
-                    validator: validateEmail,
+                    validator:  (val) => val.isEmpty ? 'Enter an email' : null,
                     onChanged: (val) {
                       setState(() => email = val);
                     },
@@ -50,9 +52,7 @@ class _SignInState extends State<SignIn> {
                   SizedBox(height: 20.0),
                   TextFormField(
                       obscureText: true,
-                      validator: (val) => val.length < 6
-                          ? 'The password must contain minimum 6 characters'
-                          : null,
+                      validator: (val) => val.length < 6? 'The password must contain minimum 6 characters' : null,
                       onChanged: (val) {
                         setState(() => password = val);
                       }),
@@ -64,13 +64,13 @@ class _SignInState extends State<SignIn> {
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () async {
-                        if (_formKey.currentState.validate()) {
-                          setState(() => error = '');
-                          dynamic result = await _auth
-                              .signInWithEmailAndPassword(email, password);
+                        if (_formKey.currentState.validate()) { 
+                          //print('valid') ;                       
+                          dynamic result = await _auth.signInWithEmailAndPassword(email, password);
                           if (result == null) {
                             setState(() => error = 'Invalid email or password');
                           }
+                         
                         }
                       }),
                   SizedBox(height: 20.0),
@@ -82,16 +82,4 @@ class _SignInState extends State<SignIn> {
               ))),
     );
   }
-
-  String validateEmail(String value) {
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
-    if (value.isEmpty)
-      return "Enter an email";
-    else if (!regex.hasMatch(value))
-      return 'Enter Valid Email';
-    else
-      return null;
-  }
-}
+ }
