@@ -3,6 +3,9 @@ import 'package:ocrapplication/screens/authenticate/sign_in.dart';
 import 'package:ocrapplication/services/auth.dart';
 
 class Register extends StatefulWidget {
+  final Function toggleView;
+  Register({this.toggleView});
+  
   @override
   _RegisterState createState() => _RegisterState();
 }
@@ -26,9 +29,7 @@ class _RegisterState extends State<Register> {
         actions: <Widget>[
           FlatButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => SignIn())
-                );
+               widget.toggleView();
               },
               icon: Icon(Icons.person),
               label: Text('Sign In'))
@@ -42,7 +43,7 @@ class _RegisterState extends State<Register> {
                 children: <Widget>[
                   SizedBox(height: 20.0),
                   TextFormField(
-                    validator: validateEmail,
+                    validator: (val) => val.isEmpty ? 'Enter an email' : null,
                     onChanged: (val) {
                       setState(() => email = val);
                     },
@@ -66,9 +67,7 @@ class _RegisterState extends State<Register> {
                       onPressed: () async {
                         setState(() => error = '');
                         if (_formKey.currentState.validate()) {
-                          setState(() => error = '');
-                          dynamic result = await _auth
-                              .registerWithEmailAndPassword(email, password);
+                          dynamic result = await _auth.registerWithEmailAndPassword(email, password);
                           if (result == null) {
                             setState(() => error = 'Email Already in use!');
                           } else {
@@ -86,17 +85,17 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  String validateEmail(String value) {
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new
-    RegExp(pattern);
-    if (value.isEmpty)
-      return "Enter an email";
-    else if (!regex.hasMatch(value))
-      return 'Enter Valid Email';
-    else
-      return null;
-  }
+  // String validateEmail(String value) {
+  //   Pattern pattern =
+  //       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+  //   RegExp regex = new
+  //   RegExp(pattern);
+  //   if (value.isEmpty)
+  //     return "Enter an email";
+  //   else if (!regex.hasMatch(value))
+  //     return 'Enter Valid Email';
+  //   else
+  //     return null;
+  // }
 }
 
