@@ -21,20 +21,20 @@ class ScannerUtils {
     );
   }
 
-  static Future<dynamic> detect({
+  static Future<VisionText> detect({
     @required CameraImage image,
     @required Future<dynamic> Function(FirebaseVisionImage image) detectInImage,
     @required int imageRotation,
   }) async {
     return detectInImage(
       FirebaseVisionImage.fromBytes(
-        _concatenatePlanes(image.planes),
-        _buildMetaData(image, _rotationIntToImageRotation(imageRotation)),
+        concatenatePlanes(image.planes),
+        buildMetaData(image, rotationIntToImageRotation(imageRotation)),
       ),
     );
   }
 
-  static Uint8List _concatenatePlanes(List<Plane> planes) {
+  static Uint8List concatenatePlanes(List<Plane> planes) {
     final WriteBuffer allBytes = WriteBuffer();
     for (Plane plane in planes) {
       allBytes.putUint8List(plane.bytes);
@@ -42,7 +42,7 @@ class ScannerUtils {
     return allBytes.done().buffer.asUint8List();
   }
 
-  static FirebaseVisionImageMetadata _buildMetaData(
+  static FirebaseVisionImageMetadata buildMetaData(
     CameraImage image,
     ImageRotation rotation,
   ) {
@@ -62,7 +62,7 @@ class ScannerUtils {
     );
   }
 
-  static ImageRotation _rotationIntToImageRotation(int rotation) {
+  static ImageRotation rotationIntToImageRotation(int rotation) {
     switch (rotation) {
       case 0:
         return ImageRotation.rotation0;

@@ -55,38 +55,45 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
 
       _isDetecting = true;
 
-      ScannerUtils.detect(
-        image: image,
-        detectInImage: _getDetectionMethod(),
-        imageRotation: description.sensorOrientation,
-      ).then(
-        (dynamic results) {
-          if (_currentDetector == null) return;
-          setState(() {
-            _scanResults = results;
-          });
-        },
-      ).whenComplete(() => _isDetecting = false);
+      _recognizer
+          .processImage(FirebaseVisionImage.fromBytes(
+        ScannerUtils.concatenatePlanes(image.planes),
+        ScannerUtils.buildMetaData(
+            image,
+            ScannerUtils.rotationIntToImageRotation(
+                description.sensorOrientation)),
+      ))
+          .then((VisionText results) {
+        if (results == null ||
+            results.text == null ||
+            results.text.trim() == '') return;
+        print('results text: ');
+        print(results.text);
+
+        setState(() {
+          _scanResults = results;
+        });
+      }).whenComplete(() => _isDetecting = false);
+
+      // ScannerUtils.detect(
+      //   image: image,
+      //   detectInImage: _getDetectionMethod(),
+      //   imageRotation: description.sensorOrientation,
+      // ).then(
+      //   (VisionText results) {
+      //     // if (_currentDetector == null) return;
+      //     print('results text: ');
+      //     print(results.text);
+      //     setState(() {
+      //       _scanResults = results;
+      //     });
+      //   },
+      // ).whenComplete(() => _isDetecting = false);
     });
   }
 
-  Future<dynamic> Function(FirebaseVisionImage image) _getDetectionMethod() {
-    switch (_currentDetector) {
-      case Detector.text:
-        return _recognizer.processImage;
-      case Detector.cloudText:
-        return _cloudRecognizer.processImage;
-      case Detector.barcode:
-        return _barcodeDetector.detectInImage;
-      case Detector.label:
-        return _imageLabeler.processImage;
-      case Detector.cloudLabel:
-        return _cloudImageLabeler.processImage;
-      case Detector.face:
-        return _faceDetector.processImage;
-    }
-
-    return null;
+  Future<VisionText> Function(FirebaseVisionImage image) _getDetectionMethod() {
+    return _recognizer.processImage;
   }
 
   Widget _buildResults() {
@@ -105,30 +112,29 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       _camera.value.previewSize.width,
     );
 
-    switch (_currentDetector) {
-      case Detector.barcode:
-        if (_scanResults is! List<Barcode>) return noResultsText;
-        painter = BarcodeDetectorPainter(imageSize, _scanResults);
-        break;
-      case Detector.face:
-        if (_scanResults is! List<Face>) return noResultsText;
-        painter = FaceDetectorPainter(imageSize, _scanResults);
-        break;
-      case Detector.label:
-        if (_scanResults is! List<ImageLabel>) return noResultsText;
-        painter = LabelDetectorPainter(imageSize, _scanResults);
-        break;
-      case Detector.cloudLabel:
-        if (_scanResults is! List<ImageLabel>) return noResultsText;
-        painter = LabelDetectorPainter(imageSize, _scanResults);
-        break;
-      default:
-        assert(_currentDetector == Detector.text ||
-            _currentDetector == Detector.cloudText);
-        if (_scanResults is! VisionText) return noResultsText;
-        painter = TextDetectorPainter(imageSize, _scanResults);
-    }
-
+    // switch (_currentDetector) {
+    // case Detector.barcode:
+    //   if (_scanResults is! List<Barcode>) return noResultsText;
+    //   painter = BarcodeDetectorPainter(imageSize, _scanResults);
+    //   break;
+    // case Detector.face:
+    //   if (_scanResults is! List<Face>) return noResultsText;
+    //   painter = FaceDetectorPainter(imageSize, _scanResults);
+    //   break;
+    // case Detector.label:
+    //   if (_scanResults is! List<ImageLabel>) return noResultsText;
+    //   painter = LabelDetectorPainter(imageSize, _scanResults);
+    //   break;
+    // case Detector.cloudLabel:
+    //   if (_scanResults is! List<ImageLabel>) return noResultsText;
+    //   painter = LabelDetectorPainter(imageSize, _scanResults);
+    //   break;
+    // default:
+    //   assert(_currentDetector == Detector.text ||
+    //       _currentDetector == Detector.cloudText);
+    //   if (_scanResults is! VisionText) return noResultsText;
+    painter = TextDetectorPainter(imageSize, _scanResults);
+    // }
     return CustomPaint(
       painter: painter,
     );
