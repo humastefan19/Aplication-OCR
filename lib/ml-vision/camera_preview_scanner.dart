@@ -18,7 +18,6 @@ class CameraPreviewScanner extends StatefulWidget {
 class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
   dynamic _scanResults;
   CameraController _camera;
-  Detector _currentDetector = Detector.text;
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.back;
 
@@ -46,14 +45,22 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       description,
       defaultTargetPlatform == TargetPlatform.iOS
           ? ResolutionPreset.low
-          : ResolutionPreset.medium,
+          : ResolutionPreset.high,
     );
     await _camera.initialize();
 
-    _camera.startImageStream((CameraImage image) {
-      if (_isDetecting) return;
+    DateTime scanStartedAt, scanFinishedAt;
 
-      _isDetecting = true;
+    _camera.startImageStream((CameraImage image) {
+      if (_isDetecting) {
+        print('scanner busy...');
+        return;
+      }
+
+      setState(() {
+        _isDetecting = true;
+      });
+      scanStartedAt = DateTime.now();
 
       _recognizer
           .processImage(FirebaseVisionImage.fromBytes(
@@ -67,13 +74,27 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
         if (results == null ||
             results.text == null ||
             results.text.trim() == '') return;
+
         print('results text: ');
         print(results.text);
 
         setState(() {
           _scanResults = results;
         });
-      }).whenComplete(() => _isDetecting = false);
+        // _isDetecting = false;
+        // print('detecting finished: ' + DateTime.now().toIso8601String());
+      }).catchError((error) {
+        print('detection thrown an error: ');
+        print(error);
+      }).whenComplete(() {
+        setState(() {
+          _isDetecting = false;
+        });
+        scanFinishedAt = DateTime.now();
+        print('detecting took: ' +
+            scanFinishedAt.difference(scanStartedAt).inMilliseconds.toString() +
+            " millis");
+      });
 
       // ScannerUtils.detect(
       //   image: image,
@@ -90,10 +111,6 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       //   },
       // ).whenComplete(() => _isDetecting = false);
     });
-  }
-
-  Future<VisionText> Function(FirebaseVisionImage image) _getDetectionMethod() {
-    return _recognizer.processImage;
   }
 
   Widget _buildResults() {
@@ -188,7 +205,7 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
         actions: <Widget>[
           PopupMenuButton<Detector>(
             onSelected: (Detector result) {
-              _currentDetector = result;
+              // _currentDetector = result;
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<Detector>>[
               const PopupMenuItem<Detector>(
@@ -240,7 +257,6 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       _cloudRecognizer.close();
     });
 
-    _currentDetector = null;
     super.dispose();
   }
 }
