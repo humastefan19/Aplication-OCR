@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
+import 'package:translator/translator.dart';
+
 
 enum Detector { barcode, face, label, cloudLabel, text, cloudText }
 
@@ -126,11 +128,12 @@ class TextDetectorPainter extends CustomPainter {
 
   final Size absoluteImageSize;
   final VisionText visionText;
-
+  GoogleTranslator translator = new GoogleTranslator();
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size size) async {
     final double scaleX = size.width / absoluteImageSize.width;
     final double scaleY = size.height / absoluteImageSize.height;
+    String text;
 
     Rect scaleRect(TextContainer container) {
       return Rect.fromLTRB(
@@ -144,20 +147,40 @@ class TextDetectorPainter extends CustomPainter {
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
+    
 
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
         for (TextElement element in line.elements) {
-          paint.color = Colors.green;
+          paint.style = PaintingStyle.fill;
+          paint.color = Colors.white;
+          translator.translate(element.text, from: 'ro', to: 'en').then((x) => {text = x});
           canvas.drawRect(scaleRect(element), paint);
+          TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
+          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+          tp.layout();
+          tp.paint(canvas, new Offset(element.boundingBox.left*scaleX,element.boundingBox.top*scaleY));
+          
         }
 
-        paint.color = Colors.yellow;
+        paint.style = PaintingStyle.fill;
+          paint.color = Colors.white;
+          translator.translate(line.text, from: 'ro', to: 'en').then((x) => {text = x});
         canvas.drawRect(scaleRect(line), paint);
+        TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
+          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+          tp.layout();
+          tp.paint(canvas, new Offset(line.boundingBox.left*scaleX,line.boundingBox.top*scaleY));
       }
 
-      paint.color = Colors.red;
+      paint.style = PaintingStyle.fill;
+      paint.color = Colors.white;
+      translator.translate(block.text, from: 'ro', to: 'en').then((x) => {text = x});
       canvas.drawRect(scaleRect(block), paint);
+      TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
+      TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, new Offset(block.boundingBox.left*scaleX,block.boundingBox.top*scaleY));
     }
   }
 
