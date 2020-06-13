@@ -30,8 +30,6 @@ class HomePageState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    print('home created');
-
     final List<String> _exampleWidgetNames = <String>[
       '$ImageScan',
       '$CameraPreviewScanner'

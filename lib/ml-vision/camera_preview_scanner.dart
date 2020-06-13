@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import 'detector_painters.dart';
 import 'scanner_utils.dart';
@@ -30,6 +31,7 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
   final TextRecognizer _recognizer = FirebaseVision.instance.textRecognizer();
   final TextRecognizer _cloudRecognizer =
       FirebaseVision.instance.cloudTextRecognizer();
+  final logger = Logger();
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
 
     _camera.startImageStream((CameraImage image) {
       if (_isDetecting) {
-        print('scanner busy...');
+        // logger.d('scanner busy...');
         return;
       }
 
@@ -75,8 +77,8 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
             results.text == null ||
             results.text.trim() == '') return;
 
-        print('results text: ');
-        print(results.text);
+        logger.d('results text: ');
+        logger.d(results.text);
 
         setState(() {
           _scanResults = results;
@@ -84,32 +86,17 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
         // _isDetecting = false;
         // print('detecting finished: ' + DateTime.now().toIso8601String());
       }).catchError((error) {
-        print('detection thrown an error: ');
-        print(error);
+        logger.e('detection thrown an error: ');
+        logger.e(error);
       }).whenComplete(() {
         setState(() {
           _isDetecting = false;
         });
         scanFinishedAt = DateTime.now();
-        print('detecting took: ' +
+        logger.d('detecting took: ' +
             scanFinishedAt.difference(scanStartedAt).inMilliseconds.toString() +
             " millis");
       });
-
-      // ScannerUtils.detect(
-      //   image: image,
-      //   detectInImage: _getDetectionMethod(),
-      //   imageRotation: description.sensorOrientation,
-      // ).then(
-      //   (VisionText results) {
-      //     // if (_currentDetector == null) return;
-      //     print('results text: ');
-      //     print(results.text);
-      //     setState(() {
-      //       _scanResults = results;
-      //     });
-      //   },
-      // ).whenComplete(() => _isDetecting = false);
     });
   }
 
@@ -129,27 +116,6 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       _camera.value.previewSize.width,
     );
 
-    // switch (_currentDetector) {
-    // case Detector.barcode:
-    //   if (_scanResults is! List<Barcode>) return noResultsText;
-    //   painter = BarcodeDetectorPainter(imageSize, _scanResults);
-    //   break;
-    // case Detector.face:
-    //   if (_scanResults is! List<Face>) return noResultsText;
-    //   painter = FaceDetectorPainter(imageSize, _scanResults);
-    //   break;
-    // case Detector.label:
-    //   if (_scanResults is! List<ImageLabel>) return noResultsText;
-    //   painter = LabelDetectorPainter(imageSize, _scanResults);
-    //   break;
-    // case Detector.cloudLabel:
-    //   if (_scanResults is! List<ImageLabel>) return noResultsText;
-    //   painter = LabelDetectorPainter(imageSize, _scanResults);
-    //   break;
-    // default:
-    //   assert(_currentDetector == Detector.text ||
-    //       _currentDetector == Detector.cloudText);
-    //   if (_scanResults is! VisionText) return noResultsText;
     painter = TextDetectorPainter(imageSize, _scanResults);
     // }
     return CustomPaint(
