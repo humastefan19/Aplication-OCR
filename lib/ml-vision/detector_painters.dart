@@ -8,7 +8,6 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:translator/translator.dart';
 
-
 enum Detector { barcode, face, label, cloudLabel, text, cloudText }
 
 class BarcodeDetectorPainter extends CustomPainter {
@@ -147,40 +146,80 @@ class TextDetectorPainter extends CustomPainter {
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    
 
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
-        for (TextElement element in line.elements) {
+        // for (TextElement element in line.elements) {
+        //   paint.style = PaintingStyle.fill;
+        //   paint.color = Colors.white;
+        //   try {
+        //     final x =
+        //         await translator.translate(element.text, from: 'ro', to: 'en');
+        //     text = x;
+        //     canvas.drawRect(scaleRect(element), paint);
+        //     TextSpan textSpan = new TextSpan(
+        //         style: new TextStyle(
+        //             color: new Color.fromRGBO(0, 0, 0, 1.0),
+        //             fontSize: 16,
+        //             fontFamily: 'Roboto'),
+        //         text: text);
+        //     TextPainter tp = new TextPainter(
+        //         text: textSpan,
+        //         textAlign: TextAlign.left,
+        //         textDirection: TextDirection.ltr);
+        //     tp.layout();
+        //     tp.paint(
+        //         canvas,
+        //         new Offset(element.boundingBox.left * scaleX,
+        //             element.boundingBox.top * scaleY));
+        //   } catch (ex) {}
+        // }
+
+        try {
           paint.style = PaintingStyle.fill;
           paint.color = Colors.white;
-          translator.translate(element.text, from: 'ro', to: 'en').then((x) => {text = x});
-          canvas.drawRect(scaleRect(element), paint);
-          TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
-          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+          final x = await translator.translate(line.text, from: 'ro', to: 'en');
+          text = x;
+          canvas.drawRect(scaleRect(line), paint);
+          TextSpan textSpan = new TextSpan(
+              style: new TextStyle(
+                  color: new Color.fromRGBO(0, 0, 0, 1.0),
+                  fontSize: 16,
+                  fontFamily: 'Roboto'),
+              text: text);
+          TextPainter tp = new TextPainter(
+              text: textSpan,
+              textAlign: TextAlign.left,
+              textDirection: TextDirection.ltr);
           tp.layout();
-          tp.paint(canvas, new Offset(element.boundingBox.left*scaleX,element.boundingBox.top*scaleY));
-          
-        }
-
-        paint.style = PaintingStyle.fill;
-          paint.color = Colors.white;
-          translator.translate(line.text, from: 'ro', to: 'en').then((x) => {text = x});
-        canvas.drawRect(scaleRect(line), paint);
-        TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
-          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-          tp.layout();
-          tp.paint(canvas, new Offset(line.boundingBox.left*scaleX,line.boundingBox.top*scaleY));
+          tp.paint(
+              canvas,
+              new Offset(line.boundingBox.left * scaleX,
+                  line.boundingBox.top * scaleY));
+        } catch (ex) {}
       }
 
-      paint.style = PaintingStyle.fill;
-      paint.color = Colors.white;
-      translator.translate(block.text, from: 'ro', to: 'en').then((x) => {text = x});
-      canvas.drawRect(scaleRect(block), paint);
-      TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
-      TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      tp.paint(canvas, new Offset(block.boundingBox.left*scaleX,block.boundingBox.top*scaleY));
+      // paint.style = PaintingStyle.fill;
+      // paint.color = Colors.white;
+      // translator
+      //     .translate(block.text, from: 'ro', to: 'en')
+      //     .then((x) => {text = x});
+      // canvas.drawRect(scaleRect(block), paint);
+      // TextSpan textSpan = new TextSpan(
+      //     style: new TextStyle(
+      //         color: new Color.fromRGBO(0, 0, 0, 1.0),
+      //         fontSize: 16,
+      //         fontFamily: 'Roboto'),
+      //     text: text);
+      // TextPainter tp = new TextPainter(
+      //     text: textSpan,
+      //     textAlign: TextAlign.left,
+      //     textDirection: TextDirection.ltr);
+      // tp.layout();
+      // tp.paint(
+      //     canvas,
+      //     new Offset(
+      //         block.boundingBox.left * scaleX, block.boundingBox.top * scaleY));
     }
   }
 
