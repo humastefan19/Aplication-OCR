@@ -159,53 +159,51 @@ class TextDetectorPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     for (TextBlock block in visionText.blocks) {
-      for (TextLine line in block.lines) {
-        paint.style = PaintingStyle.fill;
-        paint.color = Colors.white;
-        try {
-          canvas.drawRect(scaleRect(line), paint);
-        } on Exception catch (ex) {
-          logger.e("Could not paint canvas: ");
-          logger.e(ex);
-          continue;
-        } catch (u) {
-          logger.e("Unknown error while painting the canvas");
-          continue;
+      paint.style = PaintingStyle.fill;
+      paint.color = Colors.white;
+      try {
+        canvas.drawRect(scaleRect(block), paint);
+      } on Exception catch (ex) {
+        logger.e("Could not paint canvas: ");
+        logger.e(ex);
+        continue;
+      } catch (u) {
+        logger.e("Unknown error while painting the canvas");
+        continue;
+      }
+
+      try {
+        final result = await translator
+            .translate(block.text, from: 'en', to: 'ro')
+            .timeout(Duration(milliseconds: 700));
+
+        if (canvas == null || paint == null) {
+          return;
         }
 
-        translator
-            .translate(line.text, from: 'en', to: 'ro')
-            .timeout(Duration(milliseconds: 500))
-            .then((result) {
-              if (canvas == null || paint == null) {
-                return;
-              }
-              try {
-                TextSpan textSpan = new TextSpan(
-                    style: new TextStyle(
-                        color: new Color.fromRGBO(0, 0, 0, 1.0),
-                        fontSize: 16,
-                        fontFamily: 'Roboto'),
-                    text: result);
-                TextPainter tp = new TextPainter(
-                    text: textSpan,
-                    textAlign: TextAlign.left,
-                    textDirection: TextDirection.ltr);
-                tp.layout();
-                tp.paint(
-                    canvas,
-                    new Offset(line.boundingBox.left * scaleX,
-                        line.boundingBox.top * scaleY));
-              } on Exception catch (ex) {
-                logger.e('Could not translate text: ' + line.text);
-                logger.e(ex);
-              }
-            })
-            .catchError(() {}, test: (e) => e is TimeoutException)
-            .catchError((err) {
-              logger.e('Could not paint the translated text:');
-              logger.e(err);
-            });
+        final textSpan = new TextSpan(
+            style: new TextStyle(
+                color: new Color.fromRGBO(0, 0, 0, 1.0),
+                fontSize: 16,
+                fontFamily: 'Roboto'),
+            text: result);
+        final tp = new TextPainter(
+            text: textSpan,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(
+            canvas,
+            new Offset(block.boundingBox.left * scaleX,
+                block.boundingBox.top * scaleY));
+      } on TimeoutException catch (ex) {
+        logger.e("timeout exception");
+        logger.e(ex);
+      } on Exception catch (ex) {
+        logger.e('Could not translate text: ' + block.text);
+        logger.e(ex);
+      } catch (err) {
+        logger.e("Unknown exception while translating text!");
       }
     }
   }
