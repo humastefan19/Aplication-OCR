@@ -137,12 +137,20 @@ class TextDetectorPainter extends CustomPainter {
     final double scaleY = size.height / absoluteImageSize.height;
 
     Rect scaleRect(TextContainer container) {
-      return Rect.fromLTRB(
-        container.boundingBox.left * scaleX,
-        container.boundingBox.top * scaleY,
-        container.boundingBox.right * scaleX,
-        container.boundingBox.bottom * scaleY,
-      );
+      if (container == null) {
+        throw new Exception("Null container");
+      }
+
+      double left = container.boundingBox.left * scaleX,
+          top = container.boundingBox.top * scaleY,
+          right = container.boundingBox.right * scaleX,
+          bottom = container.boundingBox.bottom * scaleY;
+
+      if (left == null || right == null || top == null || bottom == null) {
+        throw new Exception("Invalid rect position!");
+      }
+
+      return Rect.fromLTRB(left, top, right, bottom);
     }
 
     final Paint paint = Paint()
@@ -151,21 +159,30 @@ class TextDetectorPainter extends CustomPainter {
 
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
+        String text = line.text;
+        paint.style = PaintingStyle.fill;
+        paint.color = Colors.white;
         try {
-          String text;
-          paint.style = PaintingStyle.fill;
-          paint.color = Colors.white;
-          try {
-            final x =
-                await translator.translate(line.text, from: 'ro', to: 'en');
-            text = x;
-          } catch (ex) {
-            logger.e('Could not translate text: ' + line.text);
-            logger.e(ex);
-          }
-
-          logger.i('Translated text: ' + line.text + ' to: ' + text);
           canvas.drawRect(scaleRect(line), paint);
+        } on Exception catch (ex) {
+          logger.e("Could not paint canvas: ");
+          logger.e(ex);
+          continue;
+        }
+
+        try {
+          final x = await translator.translate(line.text, from: 'ro', to: 'en');
+          text = x;
+        } catch (ex) {
+          logger.e('Could not translate text: ' + line.text);
+          logger.e(ex);
+          continue;
+        }
+
+        if (canvas == null || paint == null) {
+          continue;
+        }
+        try {
           TextSpan textSpan = new TextSpan(
               style: new TextStyle(
                   color: new Color.fromRGBO(0, 0, 0, 1.0),
@@ -188,28 +205,6 @@ class TextDetectorPainter extends CustomPainter {
           logger.e('Could not paint the translated text: UNKNOWN_EXCEPTION');
         }
       }
-
-      // paint.style = PaintingStyle.fill;
-      // paint.color = Colors.white;
-      // translator
-      //     .translate(block.text, from: 'ro', to: 'en')
-      //     .then((x) => {text = x});
-      // canvas.drawRect(scaleRect(block), paint);
-      // TextSpan textSpan = new TextSpan(
-      //     style: new TextStyle(
-      //         color: new Color.fromRGBO(0, 0, 0, 1.0),
-      //         fontSize: 16,
-      //         fontFamily: 'Roboto'),
-      //     text: text);
-      // TextPainter tp = new TextPainter(
-      //     text: textSpan,
-      //     textAlign: TextAlign.left,
-      //     textDirection: TextDirection.ltr);
-      // tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     new Offset(
-      //         block.boundingBox.left * scaleX, block.boundingBox.top * scaleY));
     }
   }
 
