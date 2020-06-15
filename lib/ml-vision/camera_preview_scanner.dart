@@ -44,11 +44,11 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
         await ScannerUtils.getCamera(_direction);
 
     _camera = CameraController(
-      description,
-      defaultTargetPlatform == TargetPlatform.iOS
-          ? ResolutionPreset.low
-          : ResolutionPreset.high,
-    );
+        description,
+        // defaultTargetPlatform == TargetPlatform.iOS
+        //     ? ResolutionPreset.low
+        //     : ResolutionPreset.high,
+        ResolutionPreset.low);
     await _camera.initialize();
 
     DateTime scanStartedAt, scanFinishedAt;

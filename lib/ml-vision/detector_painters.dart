@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -159,7 +160,6 @@ class TextDetectorPainter extends CustomPainter {
 
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
-        String text = line.text;
         paint.style = PaintingStyle.fill;
         paint.color = Colors.white;
         try {
@@ -168,42 +168,44 @@ class TextDetectorPainter extends CustomPainter {
           logger.e("Could not paint canvas: ");
           logger.e(ex);
           continue;
-        }
-
-        try {
-          final x = await translator.translate(line.text, from: 'ro', to: 'en');
-          text = x;
-        } catch (ex) {
-          logger.e('Could not translate text: ' + line.text);
-          logger.e(ex);
+        } catch (u) {
+          logger.e("Unknown error while painting the canvas");
           continue;
         }
 
-        if (canvas == null || paint == null) {
-          continue;
-        }
-        try {
-          TextSpan textSpan = new TextSpan(
-              style: new TextStyle(
-                  color: new Color.fromRGBO(0, 0, 0, 1.0),
-                  fontSize: 16,
-                  fontFamily: 'Roboto'),
-              text: text);
-          TextPainter tp = new TextPainter(
-              text: textSpan,
-              textAlign: TextAlign.left,
-              textDirection: TextDirection.ltr);
-          tp.layout();
-          tp.paint(
-              canvas,
-              new Offset(line.boundingBox.left * scaleX,
-                  line.boundingBox.top * scaleY));
-        } on Exception catch (ex) {
-          logger.e('Could not paint the translated text:');
-          logger.e(ex);
-        } catch (unknownEx) {
-          logger.e('Could not paint the translated text: UNKNOWN_EXCEPTION');
-        }
+        translator
+            .translate(line.text, from: 'en', to: 'ro')
+            .timeout(Duration(milliseconds: 500))
+            .then((result) {
+              if (canvas == null || paint == null) {
+                return;
+              }
+              try {
+                TextSpan textSpan = new TextSpan(
+                    style: new TextStyle(
+                        color: new Color.fromRGBO(0, 0, 0, 1.0),
+                        fontSize: 16,
+                        fontFamily: 'Roboto'),
+                    text: result);
+                TextPainter tp = new TextPainter(
+                    text: textSpan,
+                    textAlign: TextAlign.left,
+                    textDirection: TextDirection.ltr);
+                tp.layout();
+                tp.paint(
+                    canvas,
+                    new Offset(line.boundingBox.left * scaleX,
+                        line.boundingBox.top * scaleY));
+              } on Exception catch (ex) {
+                logger.e('Could not translate text: ' + line.text);
+                logger.e(ex);
+              }
+            })
+            .catchError(() {}, test: (e) => e is TimeoutException)
+            .catchError((err) {
+              logger.e('Could not paint the translated text:');
+              logger.e(err);
+            });
       }
     }
   }
