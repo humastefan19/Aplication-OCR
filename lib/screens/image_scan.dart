@@ -27,8 +27,8 @@ class ImageScanPageState extends State<ImageScan> {
         FirebaseVision.instance.textRecognizer();
     final VisionText visionText =
         await textRecognizer.processImage(visionImage);
-    text = await translator.translate(visionText.text, from: 'ro', to: 'en');
-    //text = visionText.text;
+    // text = await translator.translate(visionText.text, from: 'ro', to: 'en');
+    text = visionText.text;
     setState(() {
       sampleImage = tempImage;
     });

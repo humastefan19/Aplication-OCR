@@ -146,18 +146,33 @@ class TextDetectorPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     for (TextBlock block in visionText.blocks) {
-      for (TextLine line in block.lines) {
-        for (TextElement element in line.elements) {
-          paint.color = Colors.green;
-          canvas.drawRect(scaleRect(element), paint);
-        }
+      // for (TextLine line in block.lines) {
+      //   for (TextElement element in line.elements) {
+      //     paint.color = Colors.green;
+      //     canvas.drawRect(scaleRect(element), paint);
+      //   }
 
-        paint.color = Colors.yellow;
-        canvas.drawRect(scaleRect(line), paint);
-      }
+      //   paint.color = Colors.yellow;
+      //   canvas.drawRect(scaleRect(line), paint);
+      // }
 
       paint.color = Colors.red;
       canvas.drawRect(scaleRect(block), paint);
+      final textSpan = new TextSpan(
+            style: new TextStyle(
+                color: new Color.fromRGBO(0, 0, 0, 1.0),
+                fontSize: 16,
+                fontFamily: 'Roboto'),
+            text: block.text);
+        final tp = new TextPainter(
+            text: textSpan,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(
+            canvas,
+            new Offset(block.boundingBox.left * scaleX,
+                block.boundingBox.top * scaleY));
     }
   }
 
