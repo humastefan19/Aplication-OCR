@@ -4,11 +4,13 @@
 
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'dart:convert';
 
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:translator/translator.dart';
+import 'package:http/http.dart' as http;
 
 enum Detector { barcode, face, label, cloudLabel, text, cloudText }
 
@@ -173,9 +175,20 @@ class TextDetectorPainter extends CustomPainter {
       }
 
       try {
-        final result = await translator
-            .translate(block.text, from: 'en', to: 'ro')
-            .timeout(Duration(milliseconds: 700));
+        // final result = await translator
+        //     .translate(block.text, from: 'en', to: 'ro')
+        //     .timeout(Duration(milliseconds: 700));
+
+        final result = await http
+            .get(
+                "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
+                    block.text)
+            .timeout(Duration(milliseconds: 400));
+
+        final jsonResult = json.decode(result.body);
+
+        final translation =
+            jsonResult['data']['translations'][0]['translatedText'].toString();
 
         if (canvas == null || paint == null) {
           return;
@@ -186,7 +199,7 @@ class TextDetectorPainter extends CustomPainter {
                 color: new Color.fromRGBO(0, 0, 0, 1.0),
                 fontSize: 16,
                 fontFamily: 'Roboto'),
-            text: result);
+            text: translation);
         final tp = new TextPainter(
             text: textSpan,
             textAlign: TextAlign.left,
@@ -213,4 +226,32 @@ class TextDetectorPainter extends CustomPainter {
     return oldDelegate.absoluteImageSize != absoluteImageSize ||
         oldDelegate.visionText != visionText;
   }
+}
+
+class TranslateResponse {
+  TranslationsData data;
+
+  TranslateResponse(this.data);
+}
+
+class TranslationsData {
+  List<Translation> translations;
+
+  TranslationsData(this.translations);
+}
+
+class Translation {
+  String translatedText;
+  String detectedSourceLanguage;
+
+  Translation(this.translatedText, this.detectedSourceLanguage);
+
+  Translation.fromJson(Map<String, dynamic> json)
+      : translatedText = json['translatedText'],
+        detectedSourceLanguage = json['detectedSourceLanguage'];
+
+  Map<String, dynamic> toJson() => {
+        'translatedText': translatedText,
+        'detectedSourceLanguage': detectedSourceLanguage
+      };
 }
