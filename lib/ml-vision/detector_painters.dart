@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:translator/translator.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 enum Detector { barcode, face, label, cloudLabel, text, cloudText }
 
@@ -127,10 +129,12 @@ class LabelDetectorPainter extends CustomPainter {
 
 // Paints rectangles around all the text in the image.
 class TextDetectorPainter extends CustomPainter {
-  TextDetectorPainter(this.absoluteImageSize, this.visionText);
+  TextDetectorPainter(
+      this.absoluteImageSize, this.visionText, this.translatedBlocks);
 
   final Size absoluteImageSize;
   final VisionText visionText;
+  final Map<String, String> translatedBlocks;
   final logger = Logger();
 
   GoogleTranslator translator = new GoogleTranslator();
@@ -179,18 +183,22 @@ class TextDetectorPainter extends CustomPainter {
         //     .translate(block.text, from: 'en', to: 'ro')
         //     .timeout(Duration(milliseconds: 700));
 
-        final result = await http
-            .get(
-                "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
-                    block.text)
-            .timeout(Duration(milliseconds: 400));
+        // final result = await http
+        //     .get(
+        //         "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
+        //             block.text)
+        //     .timeout(Duration(milliseconds: 400));
 
-        final jsonResult = json.decode(result.body);
+        // final jsonResult = json.decode(result.body);
 
-        final translation =
-            jsonResult['data']['translations'][0]['translatedText'].toString();
+        // final translation =
+        //     jsonResult['data']['translations'][0]['translatedText'].toString();
 
+        final blockMd5 = md5.convert(utf8.encode(block.text)).toString();
+        final translation = translatedBlocks[blockMd5];
+        logger.i("Translation for ${block.text} is $translation");
         if (canvas == null || paint == null) {
+          logger.e("Null canvas or paint");
           return;
         }
 
@@ -199,7 +207,7 @@ class TextDetectorPainter extends CustomPainter {
                 color: new Color.fromRGBO(0, 0, 0, 1.0),
                 fontSize: 16,
                 fontFamily: 'Roboto'),
-            text: translation);
+            text: translation == null ? block.text : translation);
         final tp = new TextPainter(
             text: textSpan,
             textAlign: TextAlign.left,

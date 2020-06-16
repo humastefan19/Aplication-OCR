@@ -124,10 +124,10 @@ class _PictureScannerState extends State<PictureScanner> {
         painter = LabelDetectorPainter(_imageSize, results);
         break;
       case Detector.text:
-        painter = TextDetectorPainter(_imageSize, results);
+        painter = TextDetectorPainter(_imageSize, results, null);
         break;
       case Detector.cloudText:
-        painter = TextDetectorPainter(_imageSize, results);
+        painter = TextDetectorPainter(_imageSize, results, null);
         break;
       default:
         break;

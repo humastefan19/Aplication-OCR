@@ -79,7 +79,7 @@ packages:
     source: hosted
     version: "2.1.1"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       url: "https://pub.dartlang.org"
@@ -378,6 +378,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.15"
+  throttling:
+    dependency: "direct main"
+    description:
+      name: throttling
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
   translator:
     dependency: "direct main"
     description:

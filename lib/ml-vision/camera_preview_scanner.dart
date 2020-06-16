@@ -2,14 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import 'package:throttling/throttling.dart';
 
 import 'detector_painters.dart';
 import 'scanner_utils.dart';
+import 'package:http/http.dart' as http;
 
 class CameraPreviewScanner extends StatefulWidget {
   @override
@@ -17,11 +23,14 @@ class CameraPreviewScanner extends StatefulWidget {
 }
 
 class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
-  dynamic _scanResults;
+  VisionText _scanResults;
+  // TODO: Map a Vision Text block to a translated block
+  Map<String, String> _translatedBlocks;
   CameraController _camera;
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.back;
 
+  final Throttling thr = new Throttling(duration: Duration(seconds: 2));
   final BarcodeDetector _barcodeDetector =
       FirebaseVision.instance.barcodeDetector();
   final FaceDetector _faceDetector = FirebaseVision.instance.faceDetector();
@@ -37,6 +46,42 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
   void initState() {
     super.initState();
     _initializeCamera();
+  }
+
+  void _processResults(VisionText results) async {
+    final translationsMap = HashMap<String, String>();
+
+    if (this._scanResults != null) {
+      for (TextBlock block in this._scanResults.blocks) {
+        final blockMd5 = md5.convert(utf8.encode(block.text)).toString();
+
+        if (translationsMap.containsKey(blockMd5)) {
+          continue;
+        }
+        try {
+          final result = await http
+              .get(
+                  "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
+                      block.text)
+              .timeout(Duration(milliseconds: 400));
+
+          final jsonResult = json.decode(result.body);
+
+          final translation = jsonResult['data']['translations'][0]
+                  ['translatedText']
+              .toString();
+          translationsMap[blockMd5] = translation;
+        } catch (error) {
+          logger.e('Could not translate detection: ' + block.text);
+          logger.e(error);
+        }
+      }
+    }
+
+    setState(() {
+      _scanResults = results;
+      _translatedBlocks = translationsMap;
+    });
   }
 
   void _initializeCamera() async {
@@ -80,12 +125,18 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
         logger.d('results text: ');
         logger.d(results.text);
 
-        setState(() {
-          _scanResults = results;
+        // build the block translations
+        thr.throttle(() {
+          logger.i('Processing results: ' + DateTime.now().toString());
+          _processResults(results);
         });
-        // _isDetecting = false;
         // print('detecting finished: ' + DateTime.now().toIso8601String());
       }).catchError((error) {
+        setState(() {
+          _scanResults = null;
+          _translatedBlocks = HashMap<String, String>();
+        });
+
         logger.e('detection thrown an error: ');
         logger.e(error);
       }).whenComplete(() {
@@ -116,7 +167,7 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
       _camera.value.previewSize.width,
     );
 
-    painter = TextDetectorPainter(imageSize, _scanResults);
+    painter = TextDetectorPainter(imageSize, _scanResults, _translatedBlocks);
     // }
     return CustomPaint(
       painter: painter,

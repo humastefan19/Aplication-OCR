@@ -37,7 +37,8 @@ dependencies:
     camera: ^0.5.6+1
     path_provider: ^1.6.5
     logger: ^0.9.1
-
+    crypto: ^2.1.4
+    throttling: ^0.8.0
 dev_dependencies:
     flutter_test:
         sdk: flutter
