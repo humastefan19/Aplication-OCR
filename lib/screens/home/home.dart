@@ -11,6 +11,8 @@ import 'package:ocrapplication/services/auth.dart';
 import 'package:ocrapplication/services/storage.dart';
 import 'package:translator/translator.dart';
 
+import '../storedfiles.dart';
+
 class Home extends StatefulWidget {
   @override
   HomePageState createState() => new HomePageState();
@@ -34,7 +36,8 @@ class HomePageState extends State<Home> {
 
     final List<String> _exampleWidgetNames = <String>[
       '$ImageScan',
-      '$CameraPreviewScanner'
+      '$CameraPreviewScanner',
+      '$GalleryDemo'
     ];
 
     return Scaffold(

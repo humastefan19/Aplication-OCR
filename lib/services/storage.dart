@@ -1,9 +1,14 @@
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 //Firebase Storage Plugin
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:ocrapplication/models/user.dart';
 import 'package:path/path.dart' as p;
+import 'package:provider/provider.dart';
 
 
 class StorageService extends StatefulWidget {
@@ -12,8 +17,9 @@ class StorageService extends StatefulWidget {
   _StorageState createState() => _StorageState();
 
 
-  Widget enableUpload(File sampleImage)
+  Widget enableUpload(File sampleImage, BuildContext context)
   {
+    var user = Provider.of<User>(context);
     return Container(
       child: Column(
         children: <Widget>[
@@ -23,7 +29,7 @@ class StorageService extends StatefulWidget {
             child: Text('Upload'),
             textColor: Colors.white,
             onPressed: () async {
-              uploadImage(sampleImage);
+              uploadImage(sampleImage, user);
               },//onPresses
           ),
         ],
@@ -32,11 +38,19 @@ class StorageService extends StatefulWidget {
   }
 
   static int index = 0;
-  Future uploadImage(File sampleImage) async
+  Future uploadImage(File sampleImage, User user) async
   {
     var fileName = p.basename(sampleImage.path);
     final StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
-    final StorageUploadTask task = firebaseStorageRef.putFile(sampleImage);
+
+    StorageTaskSnapshot snapshot = await firebaseStorageRef
+              .putFile(sampleImage)
+              .onComplete;
+    if(snapshot.error == null){
+      final downloadUrl =  await snapshot.ref.getDownloadURL();
+      await Firestore.instance.collection("images").add({"uid":user.uid,"name":fileName,"url":downloadUrl});
+    }
+    
   }
 
 }

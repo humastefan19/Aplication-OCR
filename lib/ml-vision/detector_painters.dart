@@ -130,7 +130,7 @@ class TextDetectorPainter extends CustomPainter {
   final VisionText visionText;
   GoogleTranslator translator = new GoogleTranslator();
   @override
-  void paint(Canvas canvas, Size size) async {
+  void paint(Canvas canvas, Size size) {
     final double scaleX = size.width / absoluteImageSize.width;
     final double scaleY = size.height / absoluteImageSize.height;
     String text;
@@ -154,30 +154,29 @@ class TextDetectorPainter extends CustomPainter {
         for (TextElement element in line.elements) {
           paint.style = PaintingStyle.fill;
           paint.color = Colors.white;
-          translator.translate(element.text, from: 'ro', to: 'en').then((x) => {text = x});
+         
           canvas.drawRect(scaleRect(element), paint);
-          TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
+          TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text:element.text);
           TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
           tp.layout();
           tp.paint(canvas, new Offset(element.boundingBox.left*scaleX,element.boundingBox.top*scaleY));
-          
         }
-
+        
         paint.style = PaintingStyle.fill;
-          paint.color = Colors.white;
-          translator.translate(line.text, from: 'ro', to: 'en').then((x) => {text = x});
+        paint.color = Colors.white;
+        
         canvas.drawRect(scaleRect(line), paint);
-        TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
-          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-          tp.layout();
-          tp.paint(canvas, new Offset(line.boundingBox.left*scaleX,line.boundingBox.top*scaleY));
+        TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: line.text);
+        TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(canvas, new Offset(line.boundingBox.left*scaleX,line.boundingBox.top*scaleY));
       }
 
       paint.style = PaintingStyle.fill;
       paint.color = Colors.white;
-      translator.translate(block.text, from: 'ro', to: 'en').then((x) => {text = x});
+     
       canvas.drawRect(scaleRect(block), paint);
-      TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: text);
+      TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: block.text);
       TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
       tp.layout();
       tp.paint(canvas, new Offset(block.boundingBox.left*scaleX,block.boundingBox.top*scaleY));

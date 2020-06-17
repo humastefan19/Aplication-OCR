@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'package:ocrapplication/models/user.dart';
 import 'package:ocrapplication/services/auth.dart';
 //Firebase Storage Plugin
 import 'package:ocrapplication/services/storage.dart';
+import 'package:provider/provider.dart';
 import 'package:translator/translator.dart';
 
 class ImageScan extends StatefulWidget {
@@ -27,7 +29,9 @@ class ImageScanPageState extends State<ImageScan> {
         FirebaseVision.instance.textRecognizer();
     final VisionText visionText =
         await textRecognizer.processImage(visionImage);
-    text = await translator.translate(visionText.text, from: 'ro', to: 'en');
+     text =  visionText.text;
+    //await translator.translate(visionText.text, from: 'ro', to: 'en');
+    // print(text);
     //text = visionText.text;
     setState(() {
       sampleImage = tempImage;
@@ -36,6 +40,7 @@ class ImageScanPageState extends State<ImageScan> {
 
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
       backgroundColor: Colors.tealAccent[50],
       appBar: AppBar(
@@ -63,7 +68,7 @@ class ImageScanPageState extends State<ImageScan> {
         new Center(
             child: sampleImage == null
                 ? Text('Select image')
-                : _storage.enableUpload(sampleImage)),
+                : _storage.enableUpload(sampleImage,context)),
         new Expanded(
           flex: 1,
           child: new SingleChildScrollView(

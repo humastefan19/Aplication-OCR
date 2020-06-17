@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:translator/translator.dart';
 
 import 'detector_painters.dart';
 import 'scanner_utils.dart';
@@ -16,7 +17,7 @@ class CameraPreviewScanner extends StatefulWidget {
 }
 
 class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
-  dynamic _scanResults;
+  VisionText _scanResults;
   CameraController _camera;
   bool _isDetecting = false;
   CameraLensDirection _direction = CameraLensDirection.back;
@@ -30,6 +31,7 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
   final TextRecognizer _recognizer = FirebaseVision.instance.textRecognizer();
   final TextRecognizer _cloudRecognizer =
       FirebaseVision.instance.cloudTextRecognizer();
+  final GoogleTranslator translator = new GoogleTranslator();
 
   @override
   void initState() {
@@ -75,11 +77,22 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
             results.text == null ||
             results.text.trim() == '') return;
 
-        print('results text: ');
-        print(results.text);
+        
 
-        setState(() {
+        setState(() async {
+          for (TextBlock block in results.blocks) {
+            block.text = await translator.translate(block.text,to:'en',from:'ro');
+            for (TextLine line in block.lines) {
+              line.text = await translator.translate(line.text,to:'en',from:'ro');
+              for (TextElement element in line.elements) {
+                element.text = await translator.translate(element.text,to:'en',from:'ro');
+              }
+            }
+          }
+          
           _scanResults = results;
+          print('results text: ');
+          print(results.text);
         });
         // _isDetecting = false;
         // print('detecting finished: ' + DateTime.now().toIso8601String());
@@ -123,11 +136,15 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
     }
 
     CustomPainter painter;
+    GoogleTranslator translator;
+    
 
     final Size imageSize = Size(
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
+  
+    
 
     // switch (_currentDetector) {
     // case Detector.barcode:

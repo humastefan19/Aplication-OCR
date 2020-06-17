@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ocrapplication/models/user.dart';
+import 'package:ocrapplication/screens/imageStored.dart';
+import 'package:ocrapplication/screens/storedfiles.dart';
 import 'package:ocrapplication/screens/wrapper.dart';
 import 'package:ocrapplication/services/auth.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +24,9 @@ class MyApp extends StatelessWidget {
           '/$PictureScanner': (BuildContext context) => PictureScanner(),
           '/$CameraPreviewScanner': (BuildContext context) =>
               CameraPreviewScanner(),
-          '/$ImageScan': (BuildContext context) => ImageScan()
+          '/$ImageScan': (BuildContext context) => ImageScan(),
+          '/$GalleryDemo': (BuildContext context) => GalleryDemo(),
+          '/$ImageStore':(BuildContext context) => ImageStore()
         },
       ),
     );
