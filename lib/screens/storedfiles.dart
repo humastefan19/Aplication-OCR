@@ -39,7 +39,7 @@ class GalleryDemo extends StatelessWidget {
                                     Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ImageStore(image: snapshot.data.documents[index].data["url"]),
+                              builder: (context) => ImageStore(image: snapshot.data.documents[index].data["url"],text: snapshot.data.documents[index].data["text"]),
                             ),
                           );
                         

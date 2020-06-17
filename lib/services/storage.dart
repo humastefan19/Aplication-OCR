@@ -17,7 +17,7 @@ class StorageService extends StatefulWidget {
   _StorageState createState() => _StorageState();
 
 
-  Widget enableUpload(File sampleImage, BuildContext context)
+  Widget enableUpload(File sampleImage, BuildContext context,String text)
   {
     var user = Provider.of<User>(context);
     return Container(
@@ -29,7 +29,7 @@ class StorageService extends StatefulWidget {
             child: Text('Upload'),
             textColor: Colors.white,
             onPressed: () async {
-              uploadImage(sampleImage, user);
+              uploadImage(sampleImage, user, text);
               },//onPresses
           ),
         ],
@@ -38,7 +38,7 @@ class StorageService extends StatefulWidget {
   }
 
   static int index = 0;
-  Future uploadImage(File sampleImage, User user) async
+  Future uploadImage(File sampleImage, User user, String text) async
   {
     var fileName = p.basename(sampleImage.path);
     final StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
@@ -48,7 +48,7 @@ class StorageService extends StatefulWidget {
               .onComplete;
     if(snapshot.error == null){
       final downloadUrl =  await snapshot.ref.getDownloadURL();
-      await Firestore.instance.collection("images").add({"uid":user.uid,"name":fileName,"url":downloadUrl});
+      await Firestore.instance.collection("images").add({"uid":user.uid,"name":fileName,"url":downloadUrl,'text':text});
     }
     
   }

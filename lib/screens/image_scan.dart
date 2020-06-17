@@ -68,7 +68,7 @@ class ImageScanPageState extends State<ImageScan> {
         new Center(
             child: sampleImage == null
                 ? Text('Select image')
-                : _storage.enableUpload(sampleImage,context)),
+                : _storage.enableUpload(sampleImage,context,text)),
         new Expanded(
           flex: 1,
           child: new SingleChildScrollView(

@@ -13,36 +13,15 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:http/http.dart' as http;
 
 class ImageStore extends StatelessWidget{
-  final String image;
+  final Image image;
+  final String text;
   ImageStore({
-    Key key, this.image
+    Key key, this.image,this.text 
   }):super(key:key);
-
- final AuthService _auth = AuthService();
-   final StorageService _storage = StorageService();
-    String text;
-   GoogleTranslator translator = new GoogleTranslator();
-   Future getImage() async {
-     http.Response response = await http.get(
-     image,
- );   
- //Uint8List
-     var bites = response.bodyBytes;
-     File tempImage = new File.fromRawPath(bites);
-     final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFilePath(image);
-     final TextRecognizer textRecognizer =
-         FirebaseVision.instance.textRecognizer();
-     final VisionText visionText =
-         await textRecognizer.processImage(visionImage);
-      text =  visionText.text;
-     //await translator.translate(visionText.text, from: 'ro', to: 'en');
-     // print(text);
-     //text = visionText.text;
-    
-   }
+   final AuthService _auth = AuthService();
    @override
    Widget build(BuildContext context){
-      getImage();
+
       return Scaffold(
        backgroundColor: Colors.tealAccent[50],
        appBar: AppBar(
@@ -68,7 +47,7 @@ class ImageStore extends StatelessWidget{
        // ),
        body: new Column(children: <Widget>[
          new Center(
-             child: Image.network(image)),
+             child: image),
          new Expanded(
            flex: 1,
            child: new SingleChildScrollView(

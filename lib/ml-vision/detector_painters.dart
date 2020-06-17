@@ -2,12 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:ui' as ui;
+import 'dart:convert';
 
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:translator/translator.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 enum Detector { barcode, face, label, cloudLabel, text, cloudText }
 
@@ -124,62 +129,103 @@ class LabelDetectorPainter extends CustomPainter {
 
 // Paints rectangles around all the text in the image.
 class TextDetectorPainter extends CustomPainter {
-  TextDetectorPainter(this.absoluteImageSize, this.visionText);
+  TextDetectorPainter(
+      this.absoluteImageSize, this.visionText, this.translatedBlocks);
 
   final Size absoluteImageSize;
   final VisionText visionText;
+  final Map<String, String> translatedBlocks;
+  final logger = Logger();
+
   GoogleTranslator translator = new GoogleTranslator();
   @override
   void paint(Canvas canvas, Size size) {
     final double scaleX = size.width / absoluteImageSize.width;
     final double scaleY = size.height / absoluteImageSize.height;
-    String text;
 
     Rect scaleRect(TextContainer container) {
-      return Rect.fromLTRB(
-        container.boundingBox.left * scaleX,
-        container.boundingBox.top * scaleY,
-        container.boundingBox.right * scaleX,
-        container.boundingBox.bottom * scaleY,
-      );
+      if (container == null) {
+        throw new Exception("Null container");
+      }
+
+      double left = container.boundingBox.left * scaleX,
+          top = container.boundingBox.top * scaleY,
+          right = container.boundingBox.right * scaleX,
+          bottom = container.boundingBox.bottom * scaleY;
+
+      if (left == null || right == null || top == null || bottom == null) {
+        throw new Exception("Invalid rect position!");
+      }
+
+      return Rect.fromLTRB(left, top, right, bottom);
     }
 
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    
 
     for (TextBlock block in visionText.blocks) {
-      for (TextLine line in block.lines) {
-        for (TextElement element in line.elements) {
-          paint.style = PaintingStyle.fill;
-          paint.color = Colors.white;
-         
-          canvas.drawRect(scaleRect(element), paint);
-          TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text:element.text);
-          TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-          tp.layout();
-          tp.paint(canvas, new Offset(element.boundingBox.left*scaleX,element.boundingBox.top*scaleY));
-        }
-        
-        paint.style = PaintingStyle.fill;
-        paint.color = Colors.white;
-        
-        canvas.drawRect(scaleRect(line), paint);
-        TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: line.text);
-        TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-        tp.layout();
-        tp.paint(canvas, new Offset(line.boundingBox.left*scaleX,line.boundingBox.top*scaleY));
-      }
-
       paint.style = PaintingStyle.fill;
       paint.color = Colors.white;
-     
-      canvas.drawRect(scaleRect(block), paint);
-      TextSpan textSpan = new TextSpan(style: new TextStyle(color: new Color.fromRGBO(0, 0, 0, 1.0), fontSize: 16, fontFamily: 'Roboto'),text: block.text);
-      TextPainter tp = new TextPainter( text: textSpan, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      tp.paint(canvas, new Offset(block.boundingBox.left*scaleX,block.boundingBox.top*scaleY));
+      try {
+        canvas.drawRect(scaleRect(block), paint);
+      } on Exception catch (ex) {
+        logger.e("Could not paint canvas: ");
+        logger.e(ex);
+        continue;
+      } catch (u) {
+        logger.e("Unknown error while painting the canvas");
+        continue;
+      }
+
+      try {
+        // final result = await translator
+        //     .translate(block.text, from: 'en', to: 'ro')
+        //     .timeout(Duration(milliseconds: 700));
+
+        // final result = await http
+        //     .get(
+        //         "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
+        //             block.text)
+        //     .timeout(Duration(milliseconds: 400));
+
+        // final jsonResult = json.decode(result.body);
+
+        // final translation =
+        //     jsonResult['data']['translations'][0]['translatedText'].toString();
+
+        final blockMd5 = md5.convert(utf8.encode(block.text)).toString();
+        final translation = translatedBlocks[blockMd5];
+        logger.i("Translation for ${block.text} is $translation");
+        if (canvas == null || paint == null) {
+          logger.e("Null canvas or paint");
+          return;
+        }
+
+        final textSpan = new TextSpan(
+            style: new TextStyle(
+                color: new Color.fromRGBO(0, 0, 0, 1.0),
+                fontSize: 16,
+                fontFamily: 'Roboto'),
+            text: translation == null ? block.text : translation);
+        final tp = new TextPainter(
+            text: textSpan,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(
+            canvas,
+            new Offset(block.boundingBox.left * scaleX,
+                block.boundingBox.top * scaleY));
+      } on TimeoutException catch (ex) {
+        logger.e("timeout exception");
+        logger.e(ex);
+      } on Exception catch (ex) {
+        logger.e('Could not translate text: ' + block.text);
+        logger.e(ex);
+      } catch (err) {
+        logger.e("Unknown exception while translating text!");
+      }
     }
   }
 
@@ -188,4 +234,32 @@ class TextDetectorPainter extends CustomPainter {
     return oldDelegate.absoluteImageSize != absoluteImageSize ||
         oldDelegate.visionText != visionText;
   }
+}
+
+class TranslateResponse {
+  TranslationsData data;
+
+  TranslateResponse(this.data);
+}
+
+class TranslationsData {
+  List<Translation> translations;
+
+  TranslationsData(this.translations);
+}
+
+class Translation {
+  String translatedText;
+  String detectedSourceLanguage;
+
+  Translation(this.translatedText, this.detectedSourceLanguage);
+
+  Translation.fromJson(Map<String, dynamic> json)
+      : translatedText = json['translatedText'],
+        detectedSourceLanguage = json['detectedSourceLanguage'];
+
+  Map<String, dynamic> toJson() => {
+        'translatedText': translatedText,
+        'detectedSourceLanguage': detectedSourceLanguage
+      };
 }

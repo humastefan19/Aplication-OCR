@@ -32,8 +32,6 @@ class HomePageState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    print('home created');
-
     final List<String> _exampleWidgetNames = <String>[
       '$ImageScan',
       '$CameraPreviewScanner',
@@ -55,15 +53,7 @@ class HomePageState extends State<Home> {
               label: Text('logout'))
         ],
       ),
-      floatingActionButton: new FloatingActionButton.extended(
-          //get Image button
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.horizontal()),
-          onPressed: () async {
-            await getImage();
-          },
-          backgroundColor: Colors.teal,
-          label: Text('Choose image')),
+     
       body: ListView.builder(
         itemCount: _exampleWidgetNames.length,
         itemBuilder: (BuildContext context, int index) {
