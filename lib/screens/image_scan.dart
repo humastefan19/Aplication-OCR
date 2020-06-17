@@ -7,6 +7,7 @@ import 'package:ocrapplication/models/user.dart';
 import 'package:ocrapplication/services/auth.dart';
 //Firebase Storage Plugin
 import 'package:ocrapplication/services/storage.dart';
+import 'package:ocrapplication/utils/translation_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:translator/translator.dart';
 
@@ -19,7 +20,7 @@ class ImageScanPageState extends State<ImageScan> {
   final AuthService _auth = AuthService();
   final StorageService _storage = StorageService();
   File sampleImage;
-  String text;
+  String _translatedText;
   GoogleTranslator translator = new GoogleTranslator();
   Future getImage() async {
     File tempImage = await ImagePicker.pickImage(source: ImageSource.gallery);
@@ -29,18 +30,22 @@ class ImageScanPageState extends State<ImageScan> {
         FirebaseVision.instance.textRecognizer();
     final VisionText visionText =
         await textRecognizer.processImage(visionImage);
-     text =  visionText.text;
+
+    final translatedText = await TranslationUtils.translateText(visionText);
+
     //await translator.translate(visionText.text, from: 'ro', to: 'en');
     // print(text);
     //text = visionText.text;
-    setState(() {
-      sampleImage = tempImage;
-    });
+    if (mounted) {
+      setState(() {
+        sampleImage = tempImage;
+        _translatedText = translatedText;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-   
     return Scaffold(
       backgroundColor: Colors.tealAccent[50],
       appBar: AppBar(
@@ -68,11 +73,11 @@ class ImageScanPageState extends State<ImageScan> {
         new Center(
             child: sampleImage == null
                 ? Text('Select image')
-                : _storage.enableUpload(sampleImage,context,text)),
+                : _storage.enableUpload(sampleImage, context, _translatedText)),
         new Expanded(
           flex: 1,
           child: new SingleChildScrollView(
-            child: text != null ? Text(text) : Text(""),
+            child: _translatedText != null ? Text(_translatedText) : Text(""),
           ),
         ),
         new Center(

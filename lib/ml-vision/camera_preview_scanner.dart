@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:ocrapplication/utils/translation_utils.dart';
 import 'package:throttling/throttling.dart';
 
 import 'detector_painters.dart';
@@ -49,39 +50,13 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
   }
 
   void _processResults(VisionText results) async {
-    final translationsMap = HashMap<String, String>();
-
-    if (this._scanResults != null) {
-      for (TextBlock block in this._scanResults.blocks) {
-        final blockMd5 = md5.convert(utf8.encode(block.text)).toString();
-
-        if (translationsMap.containsKey(blockMd5)) {
-          continue;
-        }
-        try {
-          final result = await http
-              .get(
-                  "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
-                      block.text)
-              .timeout(Duration(milliseconds: 400));
-
-          final jsonResult = json.decode(result.body);
-
-          final translation = jsonResult['data']['translations'][0]
-                  ['translatedText']
-              .toString();
-          translationsMap[blockMd5] = translation;
-        } catch (error) {
-          logger.e('Could not translate detection: ' + block.text);
-          logger.e(error);
-        }
-      }
+    final translationsMap = await TranslationUtils.translateBlocks(results);
+    if (mounted) {
+      setState(() {
+        _scanResults = results;
+        _translatedBlocks = translationsMap;
+      });
     }
-
-    setState(() {
-      _scanResults = results;
-      _translatedBlocks = translationsMap;
-    });
   }
 
   void _initializeCamera() async {
@@ -162,14 +137,10 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
 
     CustomPainter painter;
 
-    
-
     final Size imageSize = Size(
       _camera.value.previewSize.height,
       _camera.value.previewSize.width,
     );
-  
-    
 
     painter = TextDetectorPainter(imageSize, _scanResults, _translatedBlocks);
     // }
