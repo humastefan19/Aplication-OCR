@@ -21,8 +21,10 @@ class GalleryDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<User>(context);
     return Scaffold(
+      backgroundColor: Colors.tealAccent[50],
         appBar: AppBar(
-          title: Text("Image Gallery Example"),
+          backgroundColor: Colors.tealAccent[400],
+          title: Text("Poze stocate"),
         ),
        body: Container(
         padding: EdgeInsets.all(10.0),
@@ -39,7 +41,7 @@ class GalleryDemo extends StatelessWidget {
                                     Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ImageStore(image: snapshot.data.documents[index].data["url"],text: snapshot.data.documents[index].data["text"]),
+                              builder: (context) => ImageStore(image: Image.network(snapshot.data.documents[index].data["url"],height: 300.0,width: 300.0),text: snapshot.data.documents[index].data["text"]),
                             ),
                           );
                         

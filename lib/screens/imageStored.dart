@@ -21,7 +21,7 @@ class ImageStore extends StatelessWidget{
    final AuthService _auth = AuthService();
    @override
    Widget build(BuildContext context){
-
+     
       return Scaffold(
        backgroundColor: Colors.tealAccent[50],
        appBar: AppBar(

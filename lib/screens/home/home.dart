@@ -10,7 +10,7 @@ import 'package:ocrapplication/services/auth.dart';
 //Firebase Storage Plugin
 import 'package:ocrapplication/services/storage.dart';
 import 'package:translator/translator.dart';
-import 'dart:collection';
+
 import '../storedfiles.dart';
 
 class Home extends StatefulWidget {
@@ -38,11 +38,11 @@ class HomePageState extends State<Home> {
       '$GalleryDemo'
     ];
 
-    final _widgetNames = {
-      '$ImageScan': 'Scanner Imagini',
-      '$CameraPreviewScanner': 'Scanner Live',
-      '$GalleryDemo': 'Poze Stocate'
-    };
+    final _widgesName = {
+      '$ImageScan':'Scanare Imagine',
+      '$CameraPreviewScanner':'Scanare Live',
+      '$GalleryDemo':'Poze stocate'
+  };
 
     return Scaffold(
       backgroundColor: Colors.tealAccent[50],
@@ -59,6 +59,7 @@ class HomePageState extends State<Home> {
               label: Text('logout'))
         ],
       ),
+     
       body: ListView.builder(
         itemCount: _exampleWidgetNames.length,
         itemBuilder: (BuildContext context, int index) {
@@ -69,7 +70,7 @@ class HomePageState extends State<Home> {
               border: Border(bottom: BorderSide(color: Colors.grey)),
             ),
             child: ListTile(
-              title: Text(_widgetNames[widgetName]),
+              title: Text(_widgesName[widgetName]),
               onTap: () => Navigator.pushNamed(context, '/$widgetName'),
             ),
           );

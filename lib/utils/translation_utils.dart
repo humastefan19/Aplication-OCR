@@ -51,7 +51,7 @@ class TranslationUtils {
           .get(
               "https://translation.googleapis.com/language/translate/v2?target=ro&key=AIzaSyAACkuzu-1_YyBtL09iudWae90IZa6Y5cs&q=" +
                   scanResults.text)
-          .timeout(Duration(milliseconds: 400));
+          .timeout(Duration(milliseconds: 2000));
 
       final jsonResult = json.decode(result.body);
 
